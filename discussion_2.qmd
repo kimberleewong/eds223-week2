@@ -1,0 +1,93 @@
+---
+title: "week2-discussion"
+format: html
+editor_options: 
+  chunk_output_type: console
+execute: 
+  warning: false
+  message: false
+html:
+  toc: true
+---
+
+```{r}
+# load libraries
+library(here)
+library(tidyverse)
+library(sf)
+library(tmap)
+```
+
+```{r}
+# read in data
+eco_regions <- st_read(here("data", "Colombia", "Colombia.shp"))
+
+bird_obs <- read.csv(here("data","dataves.csv"))
+
+colombia_roads <- st_read(here("data", "RDLINE_colombia", "RDLINE_colombia.shp"))
+```
+
+```{r}
+# check classes
+class(bird_obs)
+class(colombia_roads)
+class(eco_regions)
+```
+
+
+```{r}
+# rename columns in bird observations & convert to sf
+class(bird_obs)
+
+bird_obs <- rename(bird_obs,long = decimal_longitude, lat = decimal_latitude)
+```
+
+```{r}
+# check class and then convert to an sf
+class(bird_obs)
+
+ bird_obs <- bird_obs %>% 
+   st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+class(bird_obs)
+```
+
+```{r}
+# check geometries
+unique(st_geometry_type(bird_obs))
+unique(st_geometry_type(eco_regions))
+unique(st_geometry_type(colombia_roads))
+
+# check coordinate system
+st_crs(eco_regions)$units
+
+st_crs(eco_regions)
+```
+
+```{r}
+# filter to a macroregion
+col_andean <- eco_regions %>% 
+  mutate(N1_MacroBi = as.factor(N1_MacroBi)) %>% 
+  filter(N1_MacroBi == "Andean")
+```
+
+```{r}
+# knew this bc we checked class and saw it was a polygon
+
+tm_shape(col_andean) +
+  tm_polygons() +
+  tm_layout(main.title = "Andean Region of Colombia")
+```
+
+```{r}
+st_crs(eco_regions) == st_crs(colombia_roads)
+```
+
+```{r}
+aves <- st_transform(bird_obs, crs = st_crs(eco_regions))
+```
+
+```{r}
+st_crs(aves) == st_crs(eco_regions)
+```
+
